@@ -17,7 +17,6 @@ public class CourierTest {
     private String login;
     private String password;
 
-
     @Before
     public void setUp() {
         courierSteps = new CourierSteps(new CourierClient());
@@ -26,17 +25,13 @@ public class CourierTest {
     }
 
     @After
-    public void tearDown()  {
+    public void tearDown() {
         try {
-
             courierSteps.deleteCourier(login, password);
-
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.out.println(e.getMessage());
         }
     }
-
 
     @Test
     @DisplayName("Проверка создания курьера с уникальным логином")
@@ -47,8 +42,6 @@ public class CourierTest {
                 .createCourier(login, password, firstName)
                 .statusCode(SC_CREATED)
                 .body("ok", is(true));
-
-
     }
 
     @Test
@@ -61,9 +54,7 @@ public class CourierTest {
         courierSteps
                 .createCourier(login, password, firstName)
                 .statusCode(SC_CONFLICT)
-                .body("message", equalTo("Этот логин уже используется. Попробуйте другой."));   // в API docs указан следующий ответ "message": "Этот логин уже используется"
-
-
+                .body("message", equalTo("Этот логин уже используется. Попробуйте другой."));
     }
 
     @Test
@@ -79,10 +70,7 @@ public class CourierTest {
         courierSteps
                 .createCourier(login, passwordNew, firstNameNew)
                 .statusCode(SC_CONFLICT)
-                .body("message", equalTo("Этот логин уже используется. Попробуйте другой."));   // в API docs указан следующий ответ "message": "Этот логин уже используется"
-
-
-
+                .body("message", equalTo("Этот логин уже используется. Попробуйте другой."));
     }
 
     @Test
@@ -94,8 +82,16 @@ public class CourierTest {
                 .createCourierWithoutLogin(password, firstName)
                 .statusCode(SC_BAD_REQUEST)
                 .body("message", equalTo("Недостаточно данных для создания учетной записи"));
-
-
     }
 
+    @Test
+    @DisplayName("Проверка создания курьера без пароля")
+    public void testCreateCourierWithoutPassword() {
+        String firstName = RandomStringUtils.random(10);
+
+        courierSteps
+                .createCourier(login, "", firstName) // Передаем пустую строку в качестве пароля
+                .statusCode(SC_BAD_REQUEST)
+                .body("message", equalTo("Недостаточно данных для создания учетной записи")); // Замените сообщением, согласно документации API, если необходимо
+    }
 }

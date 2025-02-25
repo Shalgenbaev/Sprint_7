@@ -16,21 +16,23 @@ import static org.hamcrest.Matchers.notNullValue;
 @RunWith(Parameterized.class)
 public class OrderTest {
     private OrderSteps orderSteps;
-    private  String colorStr;
+    private String colorStr;
+    private Integer track; // Поле для хранения идентификатора заказа
 
     public OrderTest(String colorStr) {
         this.colorStr = colorStr;
-
     }
 
     @Before
     public void setUp() {
         orderSteps = new OrderSteps(new OrderClient());
-
     }
 
     @After
     public void tearDown() {
+        if (track != null) {
+            orderSteps.deleteOrder(track); // Удаление созданного заказа
+        }
     }
 
     @Parameterized.Parameters
@@ -41,14 +43,11 @@ public class OrderTest {
                 {"GREY"},
                 {"BLACK,GREY"}
         };
-
     }
-
 
     @Test
     @DisplayName("Проверка заказа с различным набором цветов")
     public void testCreateOrder() {
-
         String firstName = RandomStringUtils.random(10);
         String lastName = RandomStringUtils.random(10);
         String address = RandomStringUtils.random(10);
@@ -58,12 +57,14 @@ public class OrderTest {
         String deliveryDate = "2024-02-02";
         String comment = RandomStringUtils.random(10);
 
+        // Создаем заказ и сохраняем его идентификатор
+        track = orderSteps.createOrder(firstName, lastName, address, metroStation, phone, rentTime, deliveryDate, comment, colorStr.split(","))
+                .extract()
+                .path("track");
 
-        orderSteps
-                .createOrder(firstName, lastName, address, metroStation, phone, rentTime, deliveryDate, comment, colorStr.split(","))
+        // Проверяем статус и наличие трек-идентификатора
+        orderSteps.createOrder(firstName, lastName, address, metroStation, phone, rentTime, deliveryDate, comment, colorStr.split(","))
                 .statusCode(SC_CREATED)
                 .body("track", notNullValue());
-
-
     }
 }

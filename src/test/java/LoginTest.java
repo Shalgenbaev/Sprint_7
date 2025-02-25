@@ -10,6 +10,7 @@ import step.CourierSteps;
 import static org.apache.http.HttpStatus.*;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
+
 @Feature("Логин курьера")
 public class LoginTest {
     private CourierSteps courierSteps;
@@ -26,44 +27,34 @@ public class LoginTest {
     @After
     public void tearDown() {
         try {
-
             courierSteps.deleteCourier(login, password);
-
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
     }
 
-
-
     @Test
     @DisplayName("Проверка логина курьера")
     public void testLoginCourier() {
         String firstName = RandomStringUtils.random(10);
-
-        courierSteps
-                .createCourier(login, password, firstName);
+        courierSteps.createCourier(login, password, firstName);
 
         courierSteps
                 .loginCourier(login, password)
                 .statusCode(SC_OK)
                 .body("id", notNullValue());
-
     }
 
     @Test
     @DisplayName("Проверка логина курьера без пароля")
     public void testLoginCourierWithoutPassword() {
         String firstName = RandomStringUtils.random(10);
-
-        courierSteps
-                .createCourier(login, password, firstName);
+        courierSteps.createCourier(login, password, firstName);
 
         courierSteps
                 .loginCourier(login, "")
                 .statusCode(SC_BAD_REQUEST)
                 .body("message", equalTo("Недостаточно данных для входа"));
-
     }
 
     @Test
@@ -76,19 +67,24 @@ public class LoginTest {
     }
 
     @Test
-    @DisplayName("Проверка логина курьера c некорректным паролем")
+    @DisplayName("Проверка логина курьера с некорректным паролем")
     public void testLoginCourierWrongPassword() {
         String firstName = RandomStringUtils.random(10);
-
-        courierSteps
-                .createCourier(login, password, firstName);
+        courierSteps.createCourier(login, password, firstName);
 
         courierSteps
                 .loginCourier(login, "123")
                 .statusCode(SC_NOT_FOUND)
                 .body("message", equalTo("Учетная запись не найдена"));
-
     }
 
-
+    @Test
+    @DisplayName("Проверка логина курьера без логина")
+    public void testLoginCourierWithoutLogin() {
+        // Попытка войти без логина
+        courierSteps
+                .loginCourier("", password)
+                .statusCode(SC_BAD_REQUEST)
+                .body("message", equalTo("Недостаточно данных для входа")); // Сообщение об ошибке
+    }
 }

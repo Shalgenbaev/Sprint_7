@@ -4,6 +4,7 @@ import io.qameta.allure.Description;
 import io.qameta.allure.Feature;
 import io.qameta.allure.junit4.DisplayName;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import step.OrderListSteps;
@@ -16,11 +17,21 @@ import static org.hamcrest.Matchers.notNullValue;
 @Feature("Поиск заказов")
 public class GetOrderTest {
     private OrderListSteps orderListSteps;
+    private OrderSteps orderSteps;
+    private Integer track; // Храним track ID для удаления заказа в tearDown
 
     @Before
     public void setUp() {
         orderListSteps = new OrderListSteps(new GetOrdersClient());
+        orderSteps = new OrderSteps(new OrderClient());
+    }
 
+    @After
+    public void tearDown() {
+        if (track != null) {
+            // Удаляем созданный заказ
+            orderSteps.deleteOrder(track);
+        }
     }
 
     @Test
@@ -31,12 +42,10 @@ public class GetOrderTest {
                 .body("orders", notNullValue());
     }
 
-
     @Test
     @DisplayName("Проверка запроса определенного заказа")
     @Description("В рамках теста создается заказ и осуществляется его поиск")
     public void testGetOrderByTrackId() {
-        OrderSteps orderSteps = new OrderSteps(new OrderClient());
         String firstName = RandomStringUtils.random(10);
         String lastName = RandomStringUtils.random(10);
         String address = RandomStringUtils.random(10);
@@ -47,8 +56,7 @@ public class GetOrderTest {
         String comment = RandomStringUtils.random(10);
         String colorStr = "";
 
-
-        int track = orderSteps
+        track = orderSteps
                 .createOrder(firstName, lastName, address, metroStation, phone, rentTime, deliveryDate, comment, colorStr.split(","))
                 .extract().path("track");
 
@@ -57,8 +65,5 @@ public class GetOrderTest {
                 .statusCode(SC_OK)
                 .and()
                 .assertThat().body("order.track", equalTo(track));
-
-
     }
-
 }
